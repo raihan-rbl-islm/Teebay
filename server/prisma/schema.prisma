@@ -1,0 +1,85 @@
+// server/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. THE USER MODEL (Standard Auth)
+model User {
+  id          Int       @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String    @unique
+  password    String
+  address     String?
+  phoneNumber String?
+  
+  // Relations
+  products     Product[]      @relation("UserProducts") // Products I own
+  transactions Transaction[]  // Stuff I bought or rented
+}
+
+// 2. THE PRODUCT MODEL
+model Product {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  price       Float      // Selling price
+  rentPrice   Float      // Rent price (per unit)
+  rentType    RentType   // PER_HOUR or PER_DAY
+  
+  categories  Category[] // Array of Enums (Electronics, Furniture, etc.)
+  
+  ownerId     Int
+  owner       User       @relation("UserProducts", fields: [ownerId], references: [id])
+  
+  isSold      Boolean    @default(false)
+  
+  transactions Transaction[]
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// 3. THE TRANSACTION MODEL (Tracks Buys and Rents)
+model Transaction {
+  id        Int             @id @default(autoincrement())
+  type      TransactionType // BUY or RENT
+  
+  productId Int
+  product   Product         @relation(fields: [productId], references: [id])
+  
+  userId    Int             // The Buyer or Renter
+  user      User            @relation(fields: [userId], references: [id])
+  
+  // For Rentals Only
+  startDate DateTime?
+  endDate   DateTime?
+  
+  createdAt DateTime @default(now())
+}
+
+// 4. ENUMS (Fixed options)
+enum RentType {
+  PER_HOUR
+  PER_DAY
+}
+
+enum TransactionType {
+  BUY
+  RENT
+}
+
+enum Category {
+  ELECTRONICS
+  FURNITURE
+  HOME_APPLIANCES
+  SPORTING_GOODS
+  OUTDOOR
+  TOYS
+}
