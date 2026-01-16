@@ -19,3 +19,28 @@ export const LOGIN_USER = gql`
     }
   }
 `;
+
+export const CREATE_PRODUCT = gql`
+  mutation CreateProduct(
+    $title: String!, 
+    $description: String!, 
+    $price: Float!, 
+    $rentPrice: Float!, 
+    $rentType: String!, 
+    $categories: [Category]!, 
+    $ownerId: Int!
+  ) {
+    createProduct(
+      title: $title, 
+      description: $description, 
+      price: $price, 
+      rentPrice: $rentPrice, 
+      rentType: $rentType, 
+      categories: $categories, 
+      ownerId: $ownerId
+    ) {
+      id
+      title
+    }
+  }
+`;

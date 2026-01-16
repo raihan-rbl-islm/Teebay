@@ -1,3 +1,5 @@
+import { CreateProduct } from './pages/CreateProduct';
+import { Home } from './pages/Home';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
@@ -11,12 +13,15 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        
-        {/* Protected Route: If not logged in, go to Login */}
         <Route 
           path="/" 
-          element={isAuthenticated ? <h1>Home Page (Coming Soon)</h1> : <Navigate to="/login" />} 
+          element={isAuthenticated ? <Home /> : <Navigate to="/login" />} 
         />
+        <Route 
+          path="/create-product" 
+          element={isAuthenticated ? <CreateProduct /> : <Navigate to="/login" />} 
+        />
+        
       </Routes>
     </BrowserRouter>
   );
