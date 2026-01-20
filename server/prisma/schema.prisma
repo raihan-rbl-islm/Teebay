@@ -1,9 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// --------------------------------------------------------
+// CONFIGURATION
+// --------------------------------------------------------
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +8,88 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// --------------------------------------------------------
+// MODELS
+// --------------------------------------------------------
+
+// User Model: Represents a registered user who can act as both a Buyer and a Seller.
+model User {
+  id          Int      @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  address     String
+  email       String   @unique
+  phoneNumber String
+  password    String
+
+  // Relationships
+  // Cascade delete ensures if a User is deleted, their data is cleaned up.
+  products     Product[]
+  transactions Transaction[]
+}
+
+// Product Model: Represents an item listed in the marketplace.
+model Product {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+
+  // Pricing & Rent Logic
+  // Fields are optional (?) to allow "Rent Only" or "Buy Only" items.
+  price       Float?
+  rentPrice   Float?
+  rentType    RentType? // Enum: PER_HOUR, PER_DAY
+
+  // Metadata
+  categories  Category[] // Multi-select supported via Enum List
+  views       Int        @default(0)
+  datePosted  DateTime   @default(now())
+  isSold      Boolean    @default(false)
+
+  // Relationships
+  ownerId      Int
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+}
+
+// Transaction Model: Represents the history of actions (Purchase or Rental).
+model Transaction {
+  id        Int             @id @default(autoincrement())
+  type      TransactionType // Enum: BUY, RENT
+  createdAt DateTime        @default(now())
+
+  // Rental Specifics (Nullable, only used if type == RENT)
+  startDate DateTime?
+  endDate   DateTime?
+
+  // Relationships
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+// --------------------------------------------------------
+// ENUMS
+// --------------------------------------------------------
+
+enum RentType {
+  PER_HOUR
+  PER_DAY
+}
+
+enum TransactionType {
+  BUY
+  RENT
+}
+
+enum Category {
+  ELECTRONICS
+  FURNITURE
+  HOME_APPLIANCES
+  SPORTING_GOODS
+  OUTDOOR
+  TOYS
 }
