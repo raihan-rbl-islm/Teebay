@@ -4,46 +4,46 @@ import bodyParser from 'body-parser';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 
+import { typeDefs } from './typeDefs';
+import { resolvers } from './resolvers';
+
+/**
+ * ENTRY POINT
+ * ------------------------------------------------------------------
+ * Initializes the Express application and Apollo Server instance.
+ */
 async function startServer() {
-  // 1. Initialize Express
   const app = express();
   
-  // 2. Define Basic GraphQL Schema (Required by Apollo to start)
-  const typeDefs = `
-    type Query {
-      hello: String
-    }
-  `;
-
-  // 3. Define Basic Resolver
-  const resolvers = {
-    Query: {
-      hello: () => 'Server is up and running!',
-    },
-  };
-
-  // 4. Setup Apollo Server
+  // Initialize Apollo Server
   const server = new ApolloServer({
     typeDefs,
     resolvers,
   });
 
-  // 5. Start Apollo
   await server.start();
 
-  // 6. Apply Middleware (Connects Express to Apollo)
+  // Middleware Configuration
+  app.use(cors());
+  app.use(bodyParser.json());
+
+  // GraphQL Endpoint Configuration
   app.use(
     '/graphql',
-    cors<cors.CorsRequest>(),
-    bodyParser.json(),
-    expressMiddleware(server)
+    expressMiddleware(server, {
+      context: async ({ req }) => ({ req }),
+    })
   );
 
-  // 7. Start the Listener
+  // Server Initialization
   const PORT = process.env.PORT || 4000;
+  
   app.listen(PORT, () => {
-    console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`GraphQL endpoint available at http://localhost:${PORT}/graphql`);
   });
 }
 
-startServer();
+startServer().catch((err) => {
+  console.error("Server failed to start:", err);
+});
