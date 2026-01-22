@@ -35,3 +35,45 @@ export const GET_PRODUCT_DETAILS = gql`
     }
   }
 `;
+
+export const GET_ALL_PRODUCTS = gql`
+  query GetAllProducts {
+    allProducts {
+      id
+      title
+      categories
+      price
+      rentPrice
+      rentType
+      description
+      datePosted
+      views
+    }
+  }
+`;
+
+/**
+ * QUERY: GET_TRANSACTION_HISTORY
+ * ----------------------------------------------------------------------
+ * Fetches transaction records filtered by type: BOUGHT, SOLD, BORROWED, LENT.
+ */
+export const GET_TRANSACTION_HISTORY = gql`
+  query GetTransactionHistory($filter: String!) {
+    myTransactionHistory(filter: $filter) {
+      id
+      type
+      createdAt
+      startDate
+      endDate
+      product {
+        id
+        title
+        categories
+        price
+        rentPrice
+        rentType
+        description
+      }
+    }
+  }
+`;

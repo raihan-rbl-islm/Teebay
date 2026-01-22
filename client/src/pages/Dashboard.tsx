@@ -1,33 +1,40 @@
 import { useState } from 'react';
 import { 
-  Container, Title, Button, Card, Text, Group, Stack, 
-  Loader, Center, Paper, ActionIcon, Modal 
+  Container, 
+  Title, 
+  Button, 
+  Card, 
+  Text, 
+  Group, 
+  Stack, 
+  Loader, 
+  Center, 
+  Paper, 
+  ActionIcon, 
+  Modal 
 } from '@mantine/core';
-import { useQuery, useMutation, useApolloClient } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
-import { IconTrash } from '@tabler/icons-react'; // Standard Mantine Icon Pack
+import { IconTrash } from '@tabler/icons-react';
 import { GET_MY_PRODUCTS } from '../graphql/queries';
 import { DELETE_PRODUCT } from '../graphql/mutations';
 
 /**
  * COMPONENT: Dashboard
  * ----------------------------------------------------------------------
- * Displays user's products with Delete functionality.
+ * Displays the user's products.
+ * Features:
+ * - Floating "Add Product" button (Fixed position).
+ * - Delete functionality with Cache Eviction.
+ * - Click-to-Edit navigation.
  */
 export function Dashboard() {
   const navigate = useNavigate();
-  const client = useApolloClient(); 
   
   // Fetch Data
   const { loading, error, data } = useQuery(GET_MY_PRODUCTS, {
-    fetchPolicy: 'cache-and-network' // Best practice: Show cache first, then update
+    fetchPolicy: 'cache-and-network'
   });
-
-  const handleLogout = async () => {
-    localStorage.removeItem('token');
-    await client.clearStore(); 
-    navigate('/login');
-  };
 
   if (loading && !data) return <Center h="100vh"><Loader size="lg" color="violet" /></Center>;
 
@@ -35,30 +42,19 @@ export function Dashboard() {
     return (
       <Container my="xl">
         <Text c="red" ta="center">Error loading products: {error.message}</Text>
-        <Center mt="md">
-          <Button onClick={handleLogout} variant="outline" color="red">Logout & Retry</Button>
-        </Center>
       </Container>
     );
   }
 
   return (
     <Container size="md" py="xl">
-      
-      {/* 1. TOP ROW: Logout Button */}
-      <Group justify="flex-end" mb="sm">
-        <Button color="red" size="sm" fw={700} onClick={handleLogout}>
-          LOGOUT
-        </Button>
-      </Group>
-
-      {/* 2. HEADER: Centered Title */}
+      {/* HEADER: Centered Title */}
       <Title order={2} fw={700} ta="center" mb={30} c="dark.4">
         MY PRODUCTS
       </Title>
 
-      {/* 3. CONTENT: Product List */}
-      <Stack gap="lg" mb={30}>
+      {/* CONTENT: Product List */}
+      <Stack gap="lg" mb={100}> {/* Added bottom margin so last card isn't hidden by the floating button */}
         {data?.myProducts.length === 0 ? (
           <Paper withBorder p="xl" ta="center" c="dimmed">
             You haven't listed any products yet. Click "Add Product" to start.
@@ -70,12 +66,24 @@ export function Dashboard() {
         )}
       </Stack>
 
-      {/* 4. FOOTER: Add Product Button */}
-      <Group justify="flex-end">
-        <Button color="violet" size="md" onClick={() => navigate('/add-product')}>
+      {/* FLOATING "ADD PRODUCT" BUTTON 
+        -----------------------------------------------------------------
+        position: fixed -> Removes it from normal flow, relative to viewport.
+        bottom/right -> Pins it to the corner.
+        zIndex -> Ensures it floats above content.
+      */}
+      <div style={{ position: 'fixed', bottom: 40, right: 40, zIndex: 100 }}>
+        <Button 
+          color="violet" 
+          size="lg" 
+          shadow="xl"
+          radius="xl" // Makes it pill-shaped or rounded
+          onClick={() => navigate('/add-product')}
+          style={{ boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)' }} // Add shadow for depth
+        >
           Add Product
         </Button>
-      </Group>
+      </div>
     </Container>
   );
 }
@@ -89,21 +97,11 @@ function ProductCard({ product }: { product: any }) {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // DELETE MUTATION WITH CACHE MANAGEMENT
+  // DELETE MUTATION
   const [deleteProduct, { loading: deleting }] = useMutation(DELETE_PRODUCT, {
-    /**
-     * CACHE UPDATE STRATEGY:
-     * Instead of refetching the entire list from the server (slow),
-     * we manually remove the specific object from the Apollo Cache.
-     */
     update(cache) {
-      // 1. Identify the object in the cache (e.g., "Product:5")
       const normalizedId = cache.identify({ id: product.id, __typename: 'Product' });
-      
-      // 2. Evict it from memory
       cache.evict({ id: normalizedId });
-      
-      // 3. Clean up any dangling references
       cache.gc();
     }
   });
@@ -112,13 +110,11 @@ function ProductCard({ product }: { product: any }) {
     try {
       await deleteProduct({ variables: { id: product.id } });
       setModalOpen(false);
-      // No need to navigate or refetch; the UI updates instantly due to cache eviction
     } catch (err) {
       console.error("Failed to delete:", err);
     }
   };
 
-  // Date Formatting
   const date = new Date(product.datePosted).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
@@ -135,14 +131,14 @@ function ProductCard({ product }: { product: any }) {
         style={{ cursor: 'pointer', transition: 'transform 0.2s', position: 'relative' }}
         onClick={() => navigate(`/edit-product/${product.id}`)}
       >
-        {/* --- TRASH ICON (Top Right) --- */}
+        {/* TRASH ICON */}
         <div style={{ position: 'absolute', top: 15, right: 15, zIndex: 10 }}>
           <ActionIcon 
             color="red" 
             variant="transparent" 
             size="lg"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent navigating to Edit Page
+              e.stopPropagation(); 
               setModalOpen(true);
             }}
           >
@@ -150,7 +146,7 @@ function ProductCard({ product }: { product: any }) {
           </ActionIcon>
         </div>
 
-        {/* --- CARD CONTENT --- */}
+        {/* CONTENT */}
         <Title order={4} mb={5} fw={600} c="dark.4" pr={40}>
           {product.title}
         </Title>
@@ -175,7 +171,7 @@ function ProductCard({ product }: { product: any }) {
         </Group>
       </Card>
 
-      {/* --- DELETE CONFIRMATION MODAL --- */}
+      {/* CONFIRMATION MODAL */}
       <Modal 
         opened={modalOpen} 
         onClose={() => setModalOpen(false)} 

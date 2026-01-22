@@ -4,34 +4,31 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { AddProduct } from './pages/AddProduct';
 import { EditProduct } from './pages/EditProduct';
+import { AllProducts } from './pages/AllProducts';
+import { Layout } from './components/Layout';
+import { ProductDetails } from './pages/ProductDetails';
+import { Transactions } from './pages/Transactions';
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem('token');
-
   return (
     <Routes>
+      {/* PUBLIC ROUTES (No Navbar) */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       
-      {/* Protected Dashboard Route */}
-      <Route 
-        path="/" 
-        element={
-          isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />
-        } 
-      />
-      
-      {/* Placeholder for the Add Product Wizard (We will build this next) */}
-      <Route 
-        path="/add-product" 
-        element={isAuthenticated ? <AddProduct /> : <Navigate to="/login" />}
-      />
+      {/* PROTECTED ROUTES (Has Navbar + Auth Check) */}
+      {/* The Layout component handles the Auth Check and Navbar rendering */}
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/products" element={<AllProducts />} />
+        <Route path="/add-product" element={<AddProduct />} />
+        <Route path="/edit-product/:id" element={<EditProduct />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/transactions" element={<Transactions />} />
+      </Route>
 
-      <Route 
-        path="/edit-product/:id" 
-        element={isAuthenticated ? <EditProduct /> : <Navigate to="/login" />} 
-      />
-
+      {/* Fallback: Redirect unknown routes to login */}
+      <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
 }

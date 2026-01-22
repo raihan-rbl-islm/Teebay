@@ -50,3 +50,15 @@ export const DELETE_PRODUCT = gql`
     deleteProduct(id: $id)
   }
 `;
+
+export const BUY_PRODUCT = gql`
+  mutation BuyProduct($productId: Int!) {
+    buyProduct(productId: $productId)
+  }
+`;
+
+export const RENT_PRODUCT = gql`
+  mutation RentProduct($input: RentInput!) {
+    rentProduct(input: $input)
+  }
+`;
