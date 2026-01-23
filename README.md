@@ -2,6 +2,9 @@
 
 A full-stack marketplace application that allows users to buy and rent products. Built with modern web technologies and following best software engineering practices.
 
+## 📺 Demo Video
+[![Watch the Demo](https://img.shields.io/badge/YouTube-View_Demo-red?style=for-the-badge&logo=youtube)](https://drive.google.com/file/d/17Yuf-mzNonDspVF1eAN6fMwYBtkblKpG/view?usp=sharing)
+
 ## 🚀 Features
 
 - **User Authentication**: Secure JWT-based authentication system
