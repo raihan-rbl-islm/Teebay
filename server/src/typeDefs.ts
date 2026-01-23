@@ -1,3 +1,18 @@
+/**
+ * GraphQL Type Definitions
+ * ----------------------------------------------------------------------------
+ * Defines the complete GraphQL schema for the Teebay API.
+ * 
+ * This schema includes:
+ * - Type definitions for User, Product, and Transaction
+ * - Input types for mutations
+ * - Enums for Category, RentType, and TransactionType
+ * - Query and Mutation operations
+ * 
+ * Note: Enum values must match the Prisma schema exactly to ensure
+ * type safety and consistency between the database and API layer.
+ */
+
 export const typeDefs = `#graphql
   # ---------------------------------------------------------
   # ENUMS (Must match Prisma Schema exactly)
@@ -52,6 +67,10 @@ export const typeDefs = `#graphql
     startDate: String   # Only present for Rentals
     endDate: String     # Only present for Rentals
     createdAt: String!
+    # Transaction-specific pricing (snapshot at time of transaction)
+    transactionPrice: Float      # Price paid for purchase (if type == BUY)
+    transactionRentPrice: Float # Rent price at time of rental (if type == RENT)
+    transactionRentType: RentType # Rent type at time of rental (if type == RENT)
   }
 
   # Standard response for Auth actions
@@ -119,6 +138,10 @@ export const typeDefs = `#graphql
     
     # Single Product Details (Increments view count on fetch)
     product(id: Int!): Product
+    
+    # Check if current user has a transaction for this product
+    # Returns transaction if user bought/rented this product, null otherwise
+    myTransactionForProduct(productId: Int!): Transaction
     
     # History Tabs: Returns list based on the selected filter
     # filter options: "BOUGHT", "SOLD", "BORROWED", "LENT"

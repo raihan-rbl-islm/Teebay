@@ -1,19 +1,50 @@
+/**
+ * Navbar Component
+ * ----------------------------------------------------------------------------
+ * Main navigation bar for authenticated users.
+ * 
+ * Features:
+ * - Brand logo/name (clickable, navigates to dashboard)
+ * - Navigation links (My Products, All Products, Transactions)
+ * - Active route highlighting
+ * - Logout functionality with Apollo cache clearing
+ */
+
 import { Group, Button, Title, Container, Paper, Anchor } from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApolloClient } from '@apollo/client';
 
+/**
+ * Navbar Component
+ * 
+ * @returns Navigation bar with links and logout button
+ */
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const client = useApolloClient();
 
+  /**
+   * Handles user logout
+   * 
+   * Process:
+   * 1. Removes authentication token from localStorage
+   * 2. Clears Apollo Client cache to remove sensitive data
+   * 3. Redirects to login page
+   */
   const handleLogout = async () => {
     localStorage.removeItem('token');
     await client.clearStore();
     navigate('/login');
   };
 
-  // Helper to check active link for styling
+  /**
+   * Checks if a route is currently active
+   * Used for styling active navigation links
+   * 
+   * @param path - Route path to check
+   * @returns True if the route matches current location
+   */
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -32,7 +63,7 @@ export function Navbar() {
               component="button" 
               c={isActive('/') ? 'violet' : 'dimmed'} 
               fw={isActive('/') ? 700 : 500}
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/Dashboard')}
             >
               My Products
             </Anchor>

@@ -19,24 +19,45 @@ import App from './App.tsx';
 import '@mantine/core/styles.css';
 
 /**
- * APOLLO CLIENT CONFIGURATION
- * ----------------------------------------------------------------------
- * Sets up the GraphQL connection.
- * We use a "Link Chain" strategy: AuthLink -> HttpLink.
+ * Application Entry Point
+ * ----------------------------------------------------------------------------
+ * Initializes the React application with all necessary providers and configurations.
+ * 
+ * This module sets up:
+ * - Apollo Client for GraphQL communication
+ * - Mantine UI component library
+ * - React Router for client-side routing
+ * - Authentication middleware for API requests
  */
 
-// 1. HTTP Link: Defines the API Endpoint.
-// NOTE: In a real production app, this URL should be loaded from 
-// environment variables (e.g., import.meta.env.VITE_API_URL).
+/**
+ * Apollo Client Configuration
+ * ----------------------------------------------------------------------------
+ * Sets up GraphQL client with authentication middleware.
+ * 
+ * Architecture:
+ * - Uses a "Link Chain" strategy: AuthLink -> HttpLink
+ * - AuthLink intercepts requests and adds JWT token to headers
+ * - HttpLink sends requests to the GraphQL endpoint
+ */
+
+// HTTP Link: Defines the GraphQL API endpoint
+// Note: In production, this should be loaded from environment variables
+// Example: import.meta.env.VITE_API_URL
 const httpLink = createHttpLink({
   uri: 'http://localhost:4000/graphql',
 });
 
 /**
- * 2. Auth Middleware (Interceptor)
- * This function runs before every network request. 
- * It reads the JWT from LocalStorage and adds it to the request headers.
- * This allows the backend 'getUserId' function to identify the user.
+ * Authentication Link (Request Interceptor)
+ * 
+ * This middleware runs before every GraphQL request.
+ * It reads the JWT token from localStorage and adds it to the Authorization header.
+ * This allows the backend to identify the authenticated user.
+ * 
+ * @param _ - Operation (unused)
+ * @param headers - Current request headers
+ * @returns Modified headers with authorization token
  */
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('token');
@@ -48,20 +69,26 @@ const authLink = setContext((_, { headers }) => {
   }
 });
 
-// 3. Client Instance Initialization
+/**
+ * Apollo Client Instance
+ * 
+ * Configured with:
+ * - Link chain: Auth middleware -> HTTP transport
+ * - In-memory cache for query results
+ */
 const client = new ApolloClient({
-  // Chain the links: First add auth header, then send over HTTP
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 });
 
 /**
- * ROOT RENDER
- * ----------------------------------------------------------------------
+ * Root Component Render
+ * ----------------------------------------------------------------------------
  * The application is wrapped in three essential providers:
- * 1. ApolloProvider: Enables GraphQL hooks (useQuery, useMutation).
- * 2. MantineProvider: Inject UI styles and theme context.
- * 3. BrowserRouter: Enables client-side navigation (Routes).
+ * 
+ * 1. ApolloProvider: Enables GraphQL hooks (useQuery, useMutation) throughout the app
+ * 2. MantineProvider: Provides UI component styles and theme context
+ * 3. BrowserRouter: Enables client-side navigation with React Router
  */
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

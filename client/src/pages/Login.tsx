@@ -68,7 +68,7 @@ export function Login() {
       if (data?.login?.token) {
         localStorage.setItem('token', data.login.token);
         // Force a hard reload to ensure Apollo Client picks up the new token
-        window.location.href = '/'; 
+        window.location.href = '/Dashboard'; 
       }
     } catch (err) {
       console.error("Login Failed:", err);

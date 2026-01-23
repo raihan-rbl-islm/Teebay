@@ -1,3 +1,15 @@
+/**
+ * Server Entry Point
+ * ----------------------------------------------------------------------------
+ * Initializes and starts the Express server with Apollo GraphQL Server.
+ * 
+ * This module:
+ * - Sets up Express application with middleware
+ * - Configures Apollo Server with GraphQL schema and resolvers
+ * - Establishes GraphQL endpoint at /graphql
+ * - Handles server startup and error handling
+ */
+
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -6,44 +18,67 @@ import { expressMiddleware } from '@apollo/server/express4';
 
 import { typeDefs } from './typeDefs';
 import { resolvers } from './resolvers';
+import { config } from './config';
 
 /**
- * ENTRY POINT
- * ------------------------------------------------------------------
- * Initializes the Express application and Apollo Server instance.
+ * Initializes and starts the server
+ * 
+ * @throws Error if server fails to start
  */
-async function startServer() {
+async function startServer(): Promise<void> {
   const app = express();
-  
-  // Initialize Apollo Server
+
+  // Initialize Apollo Server with schema and resolvers
   const server = new ApolloServer({
     typeDefs,
     resolvers,
+    // Enable introspection and playground in development
+    introspection: config.nodeEnv !== 'production',
   });
 
+  // Start Apollo Server
   await server.start();
 
   // Middleware Configuration
-  app.use(cors());
-  app.use(bodyParser.json());
-
-  // GraphQL Endpoint Configuration
+  // CORS: Allow cross-origin requests (configure for production)
   app.use(
-    '/graphql',
-    expressMiddleware(server, {
-      context: async ({ req }) => ({ req }),
+    cors({
+      origin: config.corsOrigin,
+      credentials: true,
     })
   );
 
+  // Body Parser: Parse JSON request bodies
+  app.use(bodyParser.json());
+
+  // GraphQL Endpoint Configuration
+  // All GraphQL requests are handled at /graphql
+  app.use(
+    '/graphql',
+    expressMiddleware(server, {
+      context: async ({ req }) => {
+        // Pass request object to resolvers for authentication
+        return { req };
+      },
+    })
+  );
+
+  // Health Check Endpoint (optional but recommended)
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
   // Server Initialization
-  const PORT = process.env.PORT || 4000;
-  
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`GraphQL endpoint available at http://localhost:${PORT}/graphql`);
+  app.listen(config.port, () => {
+    console.log(`🚀 Server running on port ${config.port}`);
+    console.log(`📊 GraphQL endpoint: http://localhost:${config.port}/graphql`);
+    console.log(`🏥 Health check: http://localhost:${config.port}/health`);
+    console.log(`🌍 Environment: ${config.nodeEnv}`);
   });
 }
 
+// Start server and handle errors
 startServer().catch((err) => {
-  console.error("Server failed to start:", err);
+  console.error('❌ Server failed to start:', err);
+  process.exit(1);
 });

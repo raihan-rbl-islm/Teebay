@@ -7,8 +7,7 @@ import {
   Stack, 
   Loader, 
   Center,
-  Paper,
-  Anchor 
+  Paper
 } from '@mantine/core';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
@@ -64,6 +63,7 @@ export function AllProducts() {
  * ----------------------------------------------------------------------
  * A read-only card optimized for browsing.
  * Distinct from "ProductCard" in Dashboard (No Edit/Delete buttons).
+ * Entire card is clickable to navigate to product details.
  */
 function MarketplaceCard({ product }: { product: any }) {
   const navigate = useNavigate();
@@ -76,27 +76,52 @@ function MarketplaceCard({ product }: { product: any }) {
   });
 
   return (
-    <Card shadow="sm" padding="lg" radius="sm" withBorder>
-      <Title order={4} mb={5} fw={600} c="dark.4">
+    <Card 
+      shadow="sm" 
+      padding="lg" 
+      radius="sm" 
+      withBorder
+      style={{ 
+        cursor: 'pointer', 
+        transition: 'transform 0.2s, box-shadow 0.2s'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '';
+      }}
+      onClick={() => navigate(`/product/${product.id}`)}
+    >
+      <Title order={4} mb={5} fw={600} c="dark.4" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
         {product.title}
       </Title>
       
-      <Text size="sm" c="dimmed" mb="xs">
+      <Text size="sm" c="dimmed" mb="xs" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
         Categories: {product.categories.join(', ')}
       </Text>
 
-      <Text size="sm" mb="md" c="dimmed">
-        Price: <span style={{ color: '#495057', fontWeight: 500 }}>${product.price}</span> 
+      <Text size="sm" mb="md" c="dimmed" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+        Price: <span style={{ color: '#495057', fontWeight: 500 }}>${product.price || 'N/A'}</span> 
         {' | '}
-        Rent: <span style={{ color: '#495057', fontWeight: 500 }}>${product.rentPrice} {product.rentType?.toLowerCase().replace('_', ' ')}</span>
+        Rent: <span style={{ color: '#495057', fontWeight: 500 }}>${product.rentPrice || 'N/A'} {product.rentType?.toLowerCase().replace('_', ' ') || 'N/A'}</span>
       </Text>
 
-      {/* Description with "More Details" Link */}
-      <Text size="sm" lineClamp={3} mb="xl" c="dark.3">
-        {product.description}{' '}
-        <Anchor component="button" size="sm" c="blue" onClick={() => navigate(`/product/${product.id}`)}>
-          ... More Details
-        </Anchor>
+      {/* Full Description - No truncation */}
+      <Text 
+        size="sm" 
+        mb="xl" 
+        c="dark.3"
+        style={{ 
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          whiteSpace: 'pre-wrap',
+          overflow: 'hidden'
+        }}
+      >
+        {product.description}
       </Text>
 
       {/* Footer Metadata */}

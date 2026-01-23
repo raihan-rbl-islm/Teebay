@@ -81,17 +81,21 @@ export function AddProduct() {
       const values = form.values;
       
       // Data Sanitization: Convert strings to numbers for GraphQL Float type
+      const price = values.price ? parseFloat(String(values.price)) : null;
+      const rentPrice = values.rentPrice ? parseFloat(String(values.rentPrice)) : null;
+      
       const payload = {
         title: values.title,
         description: values.description,
         categories: values.categories,
-        rentType: values.rentType,
-        price: values.price ? parseFloat(String(values.price)) : null,
-        rentPrice: values.rentPrice ? parseFloat(String(values.rentPrice)) : null,
+        price,
+        rentPrice,
+        // Only include rentType if rentPrice is provided
+        rentType: rentPrice ? values.rentType : null,
       };
 
       await createProduct({ variables: { input: payload } });
-      navigate('/'); // Redirect to Dashboard on success
+      navigate('/Dashboard'); // Redirect to Dashboard on success
     } catch (err) {
       console.error("Failed to create product:", err);
     }
@@ -254,7 +258,17 @@ function StepSummary({ form }: any) {
 
       <Group mb="sm" align="flex-start">
         <Text fw={500} size="lg">Description:</Text>
-        <Text size="lg" style={{ maxWidth: '60%' }}>{description}</Text>
+        <Text 
+          size="lg" 
+          style={{ 
+            maxWidth: '60%', 
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            whiteSpace: 'pre-wrap'
+          }}
+        >
+          {description}
+        </Text>
       </Group>
 
       <Group mb="sm">

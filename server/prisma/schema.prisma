@@ -16,11 +16,11 @@ datasource db {
 
 // User Model: Represents a registered user who can act as both a Buyer and a Seller.
 model User {
-  id          Int      @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   firstName   String
   lastName    String
   address     String
-  email       String   @unique
+  email       String @unique
   phoneNumber String
   password    String
 
@@ -32,21 +32,21 @@ model User {
 
 // Product Model: Represents an item listed in the marketplace.
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   title       String
   description String
 
   // Pricing & Rent Logic
   // Fields are optional (?) to allow "Rent Only" or "Buy Only" items.
-  price       Float?
-  rentPrice   Float?
-  rentType    RentType? // Enum: PER_HOUR, PER_DAY
+  price     Float?
+  rentPrice Float?
+  rentType  RentType? // Enum: PER_HOUR, PER_DAY
 
   // Metadata
-  categories  Category[] // Multi-select supported via Enum List
-  views       Int        @default(0)
-  datePosted  DateTime   @default(now())
-  isSold      Boolean    @default(false)
+  categories Category[] // Multi-select supported via Enum List
+  views      Int        @default(0)
+  datePosted DateTime   @default(now())
+  isSold     Boolean    @default(false)
 
   // Relationships
   ownerId      Int
@@ -63,6 +63,12 @@ model Transaction {
   // Rental Specifics (Nullable, only used if type == RENT)
   startDate DateTime?
   endDate   DateTime?
+
+  // Transaction-specific pricing (snapshot at time of transaction)
+  // These preserve the price/rentPrice at the time of purchase/rental
+  transactionPrice     Float? // Price paid for purchase (if type == BUY)
+  transactionRentPrice Float? // Rent price at time of rental (if type == RENT)
+  transactionRentType  RentType? // Rent type at time of rental (if type == RENT)
 
   // Relationships
   userId    Int

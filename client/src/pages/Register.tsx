@@ -77,7 +77,7 @@ export function Register() {
       // On Success: Persist session and redirect
       if (data?.register?.token) {
         localStorage.setItem('token', data.register.token);
-        navigate('/');
+        navigate('/Dashboard');
       }
     } catch (err) {
       // Error is visually handled by the UI via the 'error' object from useMutation,

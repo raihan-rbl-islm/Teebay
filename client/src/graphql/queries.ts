@@ -32,6 +32,7 @@ export const GET_PRODUCT_DETAILS = gql`
       price
       rentPrice
       rentType
+      isSold
     }
   }
 `;
@@ -65,6 +66,9 @@ export const GET_TRANSACTION_HISTORY = gql`
       createdAt
       startDate
       endDate
+      transactionPrice
+      transactionRentPrice
+      transactionRentType
       product {
         id
         title
@@ -74,6 +78,27 @@ export const GET_TRANSACTION_HISTORY = gql`
         rentType
         description
       }
+    }
+  }
+`;
+
+/**
+ * QUERY: GET_MY_TRANSACTION_FOR_PRODUCT
+ * ----------------------------------------------------------------------
+ * Checks if current user has a transaction for a specific product.
+ * Used to show transaction-specific information on product details page.
+ */
+export const GET_MY_TRANSACTION_FOR_PRODUCT = gql`
+  query GetMyTransactionForProduct($productId: Int!) {
+    myTransactionForProduct(productId: $productId) {
+      id
+      type
+      createdAt
+      startDate
+      endDate
+      transactionPrice
+      transactionRentPrice
+      transactionRentType
     }
   }
 `;

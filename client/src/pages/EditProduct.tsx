@@ -73,17 +73,22 @@ export function EditProduct() {
         rentType: data.product.rentType || 'PER_DAY',
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
+      const price = values.price ? parseFloat(String(values.price)) : null;
+      const rentPrice = values.rentPrice ? parseFloat(String(values.rentPrice)) : null;
+      
       const payload = {
         title: values.title,
         description: values.description,
         categories: values.categories,
-        rentType: values.rentType,
-        price: values.price ? parseFloat(String(values.price)) : null,
-        rentPrice: values.rentPrice ? parseFloat(String(values.rentPrice)) : null,
+        price,
+        rentPrice,
+        // Only include rentType if rentPrice is provided
+        rentType: rentPrice ? values.rentType : null,
       };
 
       await updateProduct({ 
@@ -93,7 +98,7 @@ export function EditProduct() {
         } 
       });
       
-      navigate('/');
+      navigate('/Dashboard');
     } catch (err) {
       console.error("Update failed:", err);
     }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Container, Title, Tabs, Stack, Card, Text, Group, Loader, Center, Paper, Anchor } from '@mantine/core';
+import { Container, Title, Tabs, Stack, Card, Text, Group, Loader, Center, Paper } from '@mantine/core';
 import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import { GET_TRANSACTION_HISTORY } from '../graphql/queries';
@@ -14,9 +14,11 @@ export function Transactions() {
   const [activeTab, setActiveTab] = useState<string | null>('BOUGHT');
 
   // Fetch data based on the active tab
+  // Skip query if activeTab is null to prevent invalid filter
   const { data, loading, error } = useQuery(GET_TRANSACTION_HISTORY, {
-    variables: { filter: activeTab },
+    variables: { filter: activeTab || 'BOUGHT' },
     fetchPolicy: 'network-only',
+    skip: !activeTab, // Skip query if tab is not selected
   });
 
   return (
@@ -59,40 +61,80 @@ export function Transactions() {
  * SUB-COMPONENT: TransactionCard
  * ----------------------------------------------------------------------
  * Displays a single product from the transaction history.
+ * Entire card is clickable to navigate to product details.
  */
 function TransactionCard({ transaction }: { transaction: any }) {
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState(false);
   const { product } = transaction;
 
   return (
-    <Card shadow="sm" padding="lg" radius="sm" withBorder style={{ cursor: 'pointer' }} onClick={() => navigate(`/product/${product.id}`)}>
-      <Title order={4} mb={5} fw={600} c="dark.4">
+    <Card 
+      shadow="sm" 
+      padding="lg" 
+      radius="sm" 
+      withBorder 
+      style={{ 
+        cursor: 'pointer', 
+        transition: 'transform 0.2s, box-shadow 0.2s'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '';
+      }}
+      onClick={() => navigate(`/product/${product.id}`)}
+    >
+      <Title order={4} mb={5} fw={600} c="dark.4" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
         {product.title}
       </Title>
       
-      <Text size="sm" c="dimmed" mb="xs">Categories: {product.categories.join(', ')}</Text>
-      <Text size="sm" mb="md" c="dimmed">
-        Price: ${product.price} | Rent: ${product.rentPrice} {product.rentType?.toLowerCase()}
-      </Text>
-
-      <Text size="sm" lineClamp={expanded ? 0 : 3} c="dark.3">
-        {product.description}
+      <Text size="sm" c="dimmed" mb="xs" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+        Categories: {product.categories.join(', ')}
       </Text>
       
-      <Anchor component="button" size="sm" c="blue" mb="sm" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>
-        {expanded ? "Show Less" : "... More Details"}
-      </Anchor>
+      {/* Show transaction-specific pricing (snapshot at time of transaction) */}
+      <Text size="sm" mb="md" c="dimmed" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+        {transaction.type === 'BUY' && transaction.transactionPrice && (
+          <>Purchased for: <span style={{ color: '#495057', fontWeight: 500 }}>${transaction.transactionPrice}</span></>
+        )}
+        {transaction.type === 'RENT' && transaction.transactionRentPrice && (
+          <>Rented for: <span style={{ color: '#495057', fontWeight: 500 }}>${transaction.transactionRentPrice} {transaction.transactionRentType?.toLowerCase().replace('_', ' ')}</span></>
+        )}
+        {transaction.type === 'BUY' && !transaction.transactionPrice && (
+          <>Price: ${product.price || 'N/A'}</>
+        )}
+        {transaction.type === 'RENT' && !transaction.transactionRentPrice && (
+          <>Rent: ${product.rentPrice || 'N/A'} {product.rentType?.toLowerCase() || 'N/A'}</>
+        )}
+      </Text>
 
-      {/* Show rental dates for Borrowed/Lent items */}
-      {(transaction.type === 'RENT' || transaction.startDate) && (
-        <Group justify="space-between" mt="md" pt="md" style={{ borderTop: '1px solid #eee' }}>
+      {/* Full Description - No truncation */}
+      <Text 
+        size="sm" 
+        mb="md" 
+        c="dark.3"
+        style={{ 
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          whiteSpace: 'pre-wrap',
+          overflow: 'hidden'
+        }}
+      >
+        {product.description}
+      </Text>
+
+      {/* Show transaction date and rental period (if applicable) for all transaction types */}
+      <Group justify="space-between" mt="md" pt="md" style={{ borderTop: '1px solid #eee' }}>
+        {transaction.type === 'RENT' && transaction.startDate && (
           <Text size="xs" c="violet" fw={500}>
             Period: {new Date(transaction.startDate).toLocaleDateString()} - {new Date(transaction.endDate).toLocaleDateString()}
           </Text>
-          <Text size="xs" c="dimmed">Transacted: {new Date(transaction.createdAt).toLocaleDateString()}</Text>
-        </Group>
-      )}
+        )}
+        <Text size="xs" c="dimmed">Transacted: {new Date(transaction.createdAt).toLocaleDateString()}</Text>
+      </Group>
     </Card>
   );
 }
