@@ -84,13 +84,15 @@ Teebay/
    cd Teebay
    ```
 
-2. **Set up the database**
-   ```bash
-   # Start PostgreSQL container
-   docker-compose up -d
-   ```
 
-3. **Configure environment variables**
+2. **Configure environment variables**
+
+   Create `.env` file:
+   ```env
+   POSTGRES_USER="user"
+   POSTGRES_PASSWORD="password"
+   POSTGRES_DB="teebay_db"
+   ```
 
    Create `server/.env` file:
    ```env
@@ -107,7 +109,14 @@ Teebay/
    VITE_API_URL=http://localhost:4000/graphql
    ```
 
-4. **Install dependencies**
+
+4. **Set up the database**
+   ```bash
+   # Start PostgreSQL container
+   docker-compose up -d
+   ```
+
+5. **Install dependencies**
 
    Backend:
    ```bash
@@ -121,14 +130,14 @@ Teebay/
    npm install
    ```
 
-5. **Set up the database**
+6. **Set up the database**
    ```bash
    cd server
    npx prisma migrate dev
    npx prisma generate
    ```
 
-6. **Start the development servers**
+7. **Start the development servers**
 
    Backend (from `server/` directory):
    ```bash
@@ -140,7 +149,7 @@ Teebay/
    npm run dev
    ```
 
-7. **Access the application**
+8. **Access the application**
    - Frontend: http://localhost:5173 (or port shown in terminal)
    - Backend GraphQL: http://localhost:4000/graphql
    - Health Check: http://localhost:4000/health
